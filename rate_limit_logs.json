@@ -1,98 +1,194 @@
 [
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.core",
     "Limit": 5000,
-    "Remaining": 4980,
+    "Remaining": 4959,
     "Reset": "2024-08-29T11:38:29"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.search",
     "Limit": 30,
     "Remaining": 30,
-    "Reset": "2024-08-29T10:41:10"
+    "Reset": "2024-08-29T10:49:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.graphql",
     "Limit": 5000,
     "Remaining": 5000,
-    "Reset": "2024-08-29T11:40:10"
+    "Reset": "2024-08-29T11:48:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.integration_manifest",
     "Limit": 5000,
     "Remaining": 5000,
-    "Reset": "2024-08-29T11:40:10"
+    "Reset": "2024-08-29T11:48:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.source_import",
     "Limit": 100,
     "Remaining": 100,
-    "Reset": "2024-08-29T10:41:10"
+    "Reset": "2024-08-29T10:49:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.code_scanning_upload",
     "Limit": 1000,
     "Remaining": 1000,
-    "Reset": "2024-08-29T11:40:10"
+    "Reset": "2024-08-29T11:48:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.actions_runner_registration",
     "Limit": 10000,
     "Remaining": 10000,
-    "Reset": "2024-08-29T11:40:10"
+    "Reset": "2024-08-29T11:48:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.scim",
     "Limit": 15000,
     "Remaining": 15000,
-    "Reset": "2024-08-29T11:40:10"
+    "Reset": "2024-08-29T11:48:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.dependency_snapshots",
     "Limit": 100,
     "Remaining": 100,
-    "Reset": "2024-08-29T10:41:10"
+    "Reset": "2024-08-29T10:49:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.audit_log",
     "Limit": 1750,
     "Remaining": 1750,
-    "Reset": "2024-08-29T11:40:10"
+    "Reset": "2024-08-29T11:48:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.audit_log_streaming",
     "Limit": 15,
     "Remaining": 15,
-    "Reset": "2024-08-29T11:40:10"
+    "Reset": "2024-08-29T11:48:24"
   },
   {
-    "Timestamp": "2024-08-29T12:40:09.6832737+02:00",
-    "App": "rate-limit-app",
+    "Timestamp": "2024-08-29T12:48:23.1987806+02:00",
+    "App": "rate-limit-app-1",
     "Resource": "resources.code_search",
     "Limit": 10,
     "Remaining": 10,
-    "Reset": "2024-08-29T10:41:10"
+    "Reset": "2024-08-29T10:49:24"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.core",
+    "Limit": 5000,
+    "Remaining": 4949,
+    "Reset": "2024-08-29T11:38:29"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.search",
+    "Limit": 30,
+    "Remaining": 30,
+    "Reset": "2024-08-29T10:49:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.graphql",
+    "Limit": 5000,
+    "Remaining": 5000,
+    "Reset": "2024-08-29T11:48:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.integration_manifest",
+    "Limit": 5000,
+    "Remaining": 5000,
+    "Reset": "2024-08-29T11:48:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.source_import",
+    "Limit": 100,
+    "Remaining": 100,
+    "Reset": "2024-08-29T10:49:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.code_scanning_upload",
+    "Limit": 1000,
+    "Remaining": 1000,
+    "Reset": "2024-08-29T11:48:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.actions_runner_registration",
+    "Limit": 10000,
+    "Remaining": 10000,
+    "Reset": "2024-08-29T11:48:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.scim",
+    "Limit": 15000,
+    "Remaining": 15000,
+    "Reset": "2024-08-29T11:48:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.dependency_snapshots",
+    "Limit": 100,
+    "Remaining": 100,
+    "Reset": "2024-08-29T10:49:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.audit_log",
+    "Limit": 1750,
+    "Remaining": 1750,
+    "Reset": "2024-08-29T11:48:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.audit_log_streaming",
+    "Limit": 15,
+    "Remaining": 15,
+    "Reset": "2024-08-29T11:48:34"
+  },
+  {
+    "Timestamp": "2024-08-29T12:48:33.3047432+02:00",
+    "App": "rate-limit-app-1",
+    "Resource": "resources.code_search",
+    "Limit": 10,
+    "Remaining": 10,
+    "Reset": "2024-08-29T10:49:34"
   }
 ]

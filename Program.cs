@@ -1,26 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace GitHubRateLimitChecker
 {
     class Program
     {
-        private static readonly string ClientId = ""; // Replace with your actual Client ID  
-        private static readonly string ClientSecret = ""; // Replace with your actual Client Secret  
         private static readonly string RedirectUri = "http://localhost:5000/callback"; // Redirect URI for your web server  
-        private static readonly string AppName = "rate-limit-app";
         private static readonly string Scope = "read:user";
         private static string AuthorizationCode;
+
+        private static readonly List<ClientCredentials> ClientCredentialsList = new List<ClientCredentials>
+        {
+            new ClientCredentials { ClientId = "", ClientSecret = "", AppName = "rate-limit-app-1" },
+            new ClientCredentials { ClientId = "", ClientSecret = "", AppName = "rate-limit-app-1" },  
+            // Add more ClientCredentials objects here  
+        };
 
         static async Task Main(string[] args)
         {
@@ -31,7 +25,7 @@ namespace GitHubRateLimitChecker
 
             app.MapGet("/", async context =>
             {
-                var authorizationUrl = GetAuthorizationUrl();
+                var authorizationUrl = GetAuthorizationUrl(ClientCredentialsList[0].ClientId);
                 await context.Response.WriteAsync($"Please visit the following URL to authorize the application: {authorizationUrl}");
             });
 
@@ -43,36 +37,42 @@ namespace GitHubRateLimitChecker
 
             var serverTask = app.RunAsync("http://localhost:5000");
 
-            try
+            foreach (var credentials in ClientCredentialsList)
             {
-                Console.WriteLine($"Please visit the following URL to authorize the application: {GetAuthorizationUrl()}");
-
-                // Wait for the authorization code to be set by the callback  
-                while (string.IsNullOrEmpty(AuthorizationCode))
+                try
                 {
-                    await Task.Delay(1000);
+                    Console.WriteLine($"Please visit the following URL to authorize the application: {GetAuthorizationUrl(credentials.ClientId)}");
+
+                    // Wait for the authorization code to be set by the callback  
+                    while (string.IsNullOrEmpty(AuthorizationCode))
+                    {
+                        await Task.Delay(1000);
+                    }
+
+                    // Step 3: Exchange authorization code for access token  
+                    var token = await ExchangeAuthorizationCodeForToken(credentials.ClientId, credentials.ClientSecret, AuthorizationCode);
+
+                    Console.WriteLine($"Making API requests for {credentials.AppName}...");
+
+                    // Make 10 API requests to a common endpoint  
+                    for (int i = 0; i < 10; i++)
+                    {
+                        await MakeApiRequest(token);
+                    }
+
+                    Console.WriteLine($"Fetching rate limit for {credentials.AppName}...");
+                    var rateLimit = await GetRateLimit(token);
+                    var logs = LogRateLimit(credentials.AppName, rateLimit);
+                    allLogs.AddRange(logs);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error fetching data for {credentials.AppName}: {e.Message}");
+                    Console.WriteLine(e.StackTrace); // Print the stack trace for debugging  
                 }
 
-                // Step 3: Exchange authorization code for access token  
-                var token = await ExchangeAuthorizationCodeForToken(AuthorizationCode);
-
-                Console.WriteLine($"Making API requests...");
-
-                // Make 10 API requests to a common endpoint  
-                for (int i = 0; i < 10; i++)
-                {
-                    await MakeApiRequest(token);
-                }
-
-                Console.WriteLine($"Fetching rate limit...");
-                var rateLimit = await GetRateLimit(token);
-                var logs = LogRateLimit(AppName, rateLimit);
-                allLogs.AddRange(logs);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error fetching data: {e.Message}");
-                Console.WriteLine(e.StackTrace); // Print the stack trace for debugging  
+                // Reset the authorization code for the next iteration  
+                AuthorizationCode = null;
             }
 
             if (allLogs.Count == 0)
@@ -89,18 +89,18 @@ namespace GitHubRateLimitChecker
             await serverTask;
         }
 
-        private static string GetAuthorizationUrl()
+        private static string GetAuthorizationUrl(string clientId)
         {
-            return $"https://github.com/login/oauth/authorize?client_id={ClientId}&redirect_uri={RedirectUri}&scope={Scope}";
+            return $"https://github.com/login/oauth/authorize?client_id={clientId}&redirect_uri={RedirectUri}&scope={Scope}";
         }
 
-        private static async Task<string> ExchangeAuthorizationCodeForToken(string authorizationCode)
+        private static async Task<string> ExchangeAuthorizationCodeForToken(string clientId, string clientSecret, string authorizationCode)
         {
             using var client = new HttpClient();
             var requestBody = new Dictionary<string, string>
             {
-                { "client_id", ClientId },
-                { "client_secret", ClientSecret },
+                { "client_id", clientId },
+                { "client_secret", clientSecret },
                 { "code", authorizationCode },
                 { "redirect_uri", RedirectUri }
             };
@@ -155,8 +155,16 @@ namespace GitHubRateLimitChecker
                     Reset = DateTimeOffset.FromUnixTimeSeconds((long)data["reset"]).DateTime
                 });
             }
+
             return logData;
         }
+    }
+
+    public class ClientCredentials
+    {
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
+        public string AppName { get; set; }
     }
 
     public class RateLimitLog

@@ -1,27 +1,61 @@
-﻿using System.Web; // Add this for HttpUtility  
-using Newtonsoft.Json.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace GitHubRateLimitChecker
 {
     class Program
     {
-        private static readonly string ClientId = "clientid"; // Replace with your actual Client ID  
-        private static readonly string AppName = "name";
-        private static readonly string Scope = "read:user"; // Define your scope  
+        private static readonly string ClientId = ""; // Replace with your actual Client ID  
+        private static readonly string ClientSecret = ""; // Replace with your actual Client Secret  
+        private static readonly string RedirectUri = "http://localhost:5000/callback"; // Redirect URI for your web server  
+        private static readonly string AppName = "rate-limit-app";
+        private static readonly string Scope = "read:user";
+        private static string AuthorizationCode;
 
         static async Task Main(string[] args)
         {
             var allLogs = new List<RateLimitLog>();
 
+            var builder = WebApplication.CreateBuilder(args);
+            var app = builder.Build();
+
+            app.MapGet("/", async context =>
+            {
+                var authorizationUrl = GetAuthorizationUrl();
+                await context.Response.WriteAsync($"Please visit the following URL to authorize the application: {authorizationUrl}");
+            });
+
+            app.MapGet("/callback", async context =>
+            {
+                AuthorizationCode = context.Request.Query["code"];
+                await context.Response.WriteAsync("Authorization successful! You can close this window.");
+            });
+
+            var serverTask = app.RunAsync("http://localhost:5000");
+
             try
             {
-                // Step 1: Request device and user verification codes  
-                var deviceAuthResponse = await RequestDeviceAuthorization();
-                Console.WriteLine($"Please visit {deviceAuthResponse.VerificationUri} and enter the code: {deviceAuthResponse.UserCode}");
+                Console.WriteLine($"Please visit the following URL to authorize the application: {GetAuthorizationUrl()}");
 
-                // Step 2: Poll for user authorization  
-                var token = await PollForUserAuthorization(deviceAuthResponse.DeviceCode, deviceAuthResponse.Interval);
+                // Wait for the authorization code to be set by the callback  
+                while (string.IsNullOrEmpty(AuthorizationCode))
+                {
+                    await Task.Delay(1000);
+                }
+
+                // Step 3: Exchange authorization code for access token  
+                var token = await ExchangeAuthorizationCodeForToken(AuthorizationCode);
+
                 Console.WriteLine($"Making API requests...");
 
                 // Make 10 API requests to a common endpoint  
@@ -51,101 +85,31 @@ namespace GitHubRateLimitChecker
             var json = JsonConvert.SerializeObject(allLogs, Formatting.Indented);
             File.WriteAllText("rate_limit_logs.json", json);
             Console.WriteLine("Rate limit data saved to rate_limit_logs.json");
+
+            await serverTask;
         }
 
-        private static async Task<DeviceAuthResponse> RequestDeviceAuthorization()
+        private static string GetAuthorizationUrl()
+        {
+            return $"https://github.com/login/oauth/authorize?client_id={ClientId}&redirect_uri={RedirectUri}&scope={Scope}";
+        }
+
+        private static async Task<string> ExchangeAuthorizationCodeForToken(string authorizationCode)
         {
             using var client = new HttpClient();
             var requestBody = new Dictionary<string, string>
             {
                 { "client_id", ClientId },
-                { "scope", Scope }
+                { "client_secret", ClientSecret },
+                { "code", authorizationCode },
+                { "redirect_uri", RedirectUri }
             };
 
-            var response = await client.PostAsync("https://github.com/login/device/code", new FormUrlEncodedContent(requestBody));
+            var response = await client.PostAsync("https://github.com/login/oauth/access_token", new FormUrlEncodedContent(requestBody));
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Response from Device Authorization: {responseBody}"); // Log the raw response  
-
-            var parsedResponse = HttpUtility.ParseQueryString(responseBody);
-            return new DeviceAuthResponse
-            {
-                DeviceCode = parsedResponse["device_code"],
-                UserCode = parsedResponse["user_code"],
-                VerificationUri = parsedResponse["verification_uri"],
-                ExpiresIn = int.Parse(parsedResponse["expires_in"]),
-                Interval = int.Parse(parsedResponse["interval"])
-            };
-        }
-
-        private static async Task<string> PollForUserAuthorization(string deviceCode, int interval)
-        {
-            using var client = new HttpClient();
-            string token = null;
-            var expiresIn = 900; // Expiration time in seconds  
-            var startTime = DateTime.UtcNow;
-            var endTime = startTime.AddSeconds(expiresIn);
-
-            Console.WriteLine($"Polling started at: {startTime}");
-            Console.WriteLine($"Polling will end at: {endTime}");
-
-            // Initial wait time before starting the polling  
-            await Task.Delay(5000); // Wait 5 seconds before starting to poll  
-
-            while (DateTime.UtcNow < endTime)
-            {
-                await Task.Delay(interval * 1000); // Wait for the specified interval  
-
-                var requestBody = new Dictionary<string, string>
-                {
-                    { "client_id", ClientId },
-                    { "device_code", deviceCode },
-                    { "grant_type", "urn:ietf:params:oauth:grant-type:device_code" }
-                };
-
-                var response = await client.PostAsync("https://github.com/login/oauth/access_token", new FormUrlEncodedContent(requestBody));
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                // Check if the response is not in JSON format  
-                if (response.Content.Headers.ContentType.MediaType == "application/x-www-form-urlencoded")
-                {
-                    var parsedResponse = HttpUtility.ParseQueryString(responseBody);
-
-                    if (parsedResponse["access_token"] != null)
-                    {
-                        token = parsedResponse["access_token"];
-                        break;
-                    }
-
-                    var error = parsedResponse["error"];
-                    Console.WriteLine($"Error while polling: {error}"); // Log any errors  
-
-                    if (error == "authorization_pending")
-                    {
-                        continue; // User hasn't entered the code yet  
-                    }
-                    else if (error == "slow_down")
-                    {
-                        interval += 5; // Increase the interval as per the error response  
-                        Console.WriteLine($"Slowing down, new interval: {interval} seconds");
-                    }
-                    else
-                    {
-                        throw new Exception($"Error during polling: {error}");
-                    }
-                }
-                else
-                {
-                    throw new Exception("Unexpected response format.");
-                }
-            }
-
-            if (token == null)
-            {
-                throw new Exception("User did not authorize in time.");
-            }
-
-            return token;
+            var parsedResponse = System.Web.HttpUtility.ParseQueryString(responseBody);
+            return parsedResponse["access_token"];
         }
 
         private static async Task MakeApiRequest(string token)
@@ -153,6 +117,7 @@ namespace GitHubRateLimitChecker
             using var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Authorization", $"token {token}");
             client.DefaultRequestHeaders.Add("User-Agent", "GitHubRateLimitChecker");
+
             var response = await client.GetAsync("https://api.github.com/user");
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();
@@ -164,6 +129,7 @@ namespace GitHubRateLimitChecker
             using var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Authorization", $"token {token}");
             client.DefaultRequestHeaders.Add("User-Agent", "GitHubRateLimitChecker");
+
             var response = await client.GetAsync("https://api.github.com/rate_limit");
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();
@@ -189,18 +155,8 @@ namespace GitHubRateLimitChecker
                     Reset = DateTimeOffset.FromUnixTimeSeconds((long)data["reset"]).DateTime
                 });
             }
-
             return logData;
         }
-    }
-
-    public class DeviceAuthResponse
-    {
-        public string DeviceCode { get; set; }
-        public string UserCode { get; set; }
-        public string VerificationUri { get; set; }
-        public int ExpiresIn { get; set; }
-        public int Interval { get; set; }
     }
 
     public class RateLimitLog
